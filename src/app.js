@@ -1,17 +1,19 @@
 const express=require('express');
 const app=express();//instance of express
+const {adminAuth, userAuth}=require('./middleware/auth')
 
 app.listen(3000,()=>{
     console.log("server successfully listen onport 3000")
 });
 
-app.use("/user",(req,res,next)=>{
+app.use("/admin",adminAuth)
+
+app.use("/user", userAuth,(req,res,next)=>{
     console.log("1st route handler");
 next();
 },
 [(req,res,next)=>{
     next();
-res.send("Hi")
 },(req,res)=>{
     res.send("hello");
 }])

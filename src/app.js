@@ -4,7 +4,7 @@ const connetDB = require("./config/dtabase");
 const { adminAuth, userAuth } = require("./middleware/auth");
 const User = require("./model/user");
 
-app.use(express.json())
+app.use(express.json());
 app.post("/signup", async (req, res) => {
   //create new instance of userModel
   const user = new User(req.body);
@@ -12,9 +12,65 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("User Added Successfully");
   } catch (err) {
-    res.status("400").send("Error");
+    res.status(400).send("Error "  + err.message);
   }
 });
+//get all user
+app.get("/feed", async (req, res) => {
+  try {
+   const allUser = await User.find({});
+   if(!allUser){
+    res.status(400).send("User NOt found");
+   }
+    res.send(allUser);
+  } catch (err) {
+    res.status(400).send("Somthing went wrong " + err.message);
+  }
+});
+
+//get user by email
+app.get("/user", async (req, res) => {
+  const email = req.body.email;
+  try {
+    const userData = await User.find({ email: email });
+    if (!userData.length) {
+      res.status(400).send("User NOt found");
+    } else {
+      res.send(userData);
+    }
+  } catch (err) {
+    res.status(400).send("something went wrong");
+  }
+});
+
+
+//delete user
+app.delete("/user",async(req,res)=>{
+  const userId = req.body.id;
+  try{
+     //const deleteUser = await User.findByIdAndDelete({ _id: userId })
+     const deleteUser = await User.findByIdAndDelete(userId);
+     res.send("User deleted successfully")
+  }catch(err){
+    app.status(400).send("Somthing wrong")
+  }
+})
+
+
+//update user
+app.patch("/user", async(req,res)=>{
+  const userId= req.body.id;
+  const data= req.body;
+  try{
+    await User.findByIdAndUpdate(userId,data,{
+      runValidators:true
+    });
+    res.send("User Updataed Successfully");
+  }catch(err){
+    res.status(400).send("Something wrong Happened. " + err.message);
+  }
+})
+
 connetDB()
   .then(() => {
     console.log("database connected");

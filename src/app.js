@@ -4,14 +4,10 @@ const connetDB = require("./config/dtabase");
 const { adminAuth, userAuth } = require("./middleware/auth");
 const User = require("./model/user");
 
+app.use(express.json())
 app.post("/signup", async (req, res) => {
   //create new instance of userModel
-  const user = new User({
-    firstName: "Virat",
-    lastName: "De",
-    email: "virat@gmail.com",
-    password: "Virat@123",
-  });
+  const user = new User(req.body);
   try {
     await user.save();
     res.send("User Added Successfully");

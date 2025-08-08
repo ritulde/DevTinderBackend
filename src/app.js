@@ -3,18 +3,54 @@ const app = express(); //instance of express
 const connetDB = require("./config/dtabase");
 const { adminAuth, userAuth } = require("./middleware/auth");
 const User = require("./model/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
+
+
 app.post("/signup", async (req, res) => {
-  //create new instance of userModel
-  const user = new User(req.body);
   try {
+    //validate data
+    validateSignUpData(req);
+//create has of password
+    const passwordHash = await bcrypt.hash(req.body.password,10);
+    //create new instance of userModel 
+    const user = new User({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email:req.body.email,
+      password: passwordHash
+    });
+
     await user.save();
     res.send("User Added Successfully");
   } catch (err) {
-    res.status(400).send("Error " + err.message);
+    res.status(400).send("Error: " + err.message);
   }
 });
+
+//login api
+app.post("/login", async(req,res)=>{
+  try{
+    const {email,password}=req.body;
+    const user = await User.findOne({email:email});
+    if(!user){
+      throw new Error("Email not present in DB")
+    }
+    const isPasswordValid= await bcrypt.compare(password,user.password);
+    if(isPasswordValid){
+      res.send("login successful");
+    }else{
+      throw new Error("Password not valid")
+    }
+  }catch(err){
+    res.status(400).send("Somthing wrong: "+ err.message);
+  }
+})
+
+
+
 //get all user
 app.get("/feed", async (req, res) => {
   try {
@@ -24,9 +60,11 @@ app.get("/feed", async (req, res) => {
     }
     res.send(allUser);
   } catch (err) {
-    res.status(400).send("Somthing went wrong " + err.message);
+    res.status(400).send("Somthing went wrong: " + err.message);
   }
 });
+
+
 
 //get user by email
 app.get("/user", async (req, res) => {

@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express(); //instance of express
 const connetDB = require("./config/dtabase");
-const { adminAuth, userAuth } = require("./middleware/auth");
+const { userAuth } = require("./middleware/auth");
 const User = require("./model/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
@@ -45,8 +45,8 @@ app.post("/login", async(req,res)=>{
     if(isPasswordValid){
 
       //set jwt
-      const jwtToken=await jwt.sign({_id:user._id},"DevTinder@790")
-      res.cookie("token",jwtToken);
+      const jwtToken=await jwt.sign({_id:user._id},"DevTinder@790",{expiresIn:'0d'})
+      res.cookie("token",jwtToken,{expires:new Date(Date.now()+8*3600000)});
       res.send("login successful");
     }else{
       throw new Error("Password not valid")
@@ -57,91 +57,21 @@ app.post("/login", async(req,res)=>{
 })
 
 //get profile
-app.get("/profile",async(req,res)=>{
+app.get("/profile",userAuth,async(req,res)=>{
   try{
-const cookies= req.cookies;
-console.log(cookies);
-const {token}=cookies;
-if(!token){
-  throw new Error("Invalid token")
-}
-   const decodedMessage= await jwt.verify(token,"DevTinder@790");
-   const {_id}=decodedMessage;
-   const user=await User.findById(_id);
-   if(!user){
-    throw new Error("Invalid user")
-   }
+    const user=req.user;
   res.send(user);
   } catch(err){
-    res.status(400).send("somthing wrong")
+    res.status(400).send("somthing wrong in getting profile: " + error.message)
   }
 })
 
 
-
-//get all user
-app.get("/feed", async (req, res) => {
-  try {
-    const allUser = await User.find({});
-    if (!allUser) {
-      res.status(400).send("User NOt found");
-    }
-    res.send(allUser);
-  } catch (err) {
-    res.status(400).send("Somthing went wrong: " + err.message);
-  }
-});
-
-
-
-//get user by email
-app.get("/user", async (req, res) => {
-  const email = req.body.email;
-  try {
-    const userData = await User.find({ email: email });
-    if (!userData.length) {
-      res.status(400).send("User NOt found");
-    } else {
-      res.send(userData);
-    }
-  } catch (err) {
-    res.status(400).send("something went wrong");
-  }
-});
-
-//delete user
-app.delete("/user", async (req, res) => {
-  const userId = req.body.id;
-  try {
-    //const deleteUser = await User.findByIdAndDelete({ _id: userId })
-    const deleteUser = await User.findByIdAndDelete(userId);
-    res.send("User deleted successfully");
-  } catch (err) {
-    app.status(400).send("Somthing wrong");
-  }
-});
-
-//update user
-app.patch("/user/:userId", async (req, res) => {
-  const userId = req.params?.userId;
-  const data = req.body;
-  const allow_Updates = ["age", "skills", "about", "photos"];
-
-  try {
-    const isAllowUpdates = Object.keys(data).every((key) => {
-      allow_Updates.includes(key);
-    });
-    if (!isAllowUpdates) {
-      throw new Error("Update not allowed");
-    }
-    await User.findByIdAndUpdate(userId, data, {
-      runValidators: true,
-    });
-    res.send("User Updataed Successfully");
-  } catch (err) {
-    res.status(400).send("Something wrong Happened. " + err.message);
-  }
-});
+//sent connection request
+app.post("/sendConnection",userAuth, async(req,res)=>{
+  const user=req.user;
+  res.send(user.firstName+" sent connection request")
+})
 
 connetDB()
   .then(() => {

@@ -1,18 +1,23 @@
- const adminAuth = (req,res,next)=>{
-    const token='xyz';
-    if(token !== 'xyz'){
-        res.status(401).send("Unauthorise")
-    }else{
-        next();
+const jwt = require("jsonwebtoken");
+const User = require("../model/user");
+const userAuth = async (req, res, next) => {
+  //read token and vlaidate
+  try {
+    const cookies = req.cookies;
+    const { token } = cookies;
+    if (!token) {
+      throw new Error("Invalid token");
     }
-}
-const userAuth = (req,res,next)=>{
-    const token='aayz';
-    if(token !== 'xyz'){
-        console.log("unauthorize");
-        res.status(401).send("Unauthorise")
-    }else{
-        next();
+    const decodedMessage = await jwt.verify(token, "DevTinder@790");
+    const { _id } = decodedMessage;
+    const user = await User.findById(_id);
+    if (!user) {
+      throw new Error("Invalid user");
     }
-}
-module.exports = { adminAuth ,userAuth};
+    req.user=user;
+    next();
+  } catch (err) {
+    res.status(400).send("somthing wrong in auth: "+ err.message);
+  }
+};
+module.exports = { userAuth };

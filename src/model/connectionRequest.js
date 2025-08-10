@@ -23,7 +23,7 @@ const connectionRequestSchama= mongoose.Schema({
 
 connectionRequestSchama.index({fromUserId:1,toUserId:1});   
 //before save this middlewire call
-connectionRequestSchama.pre("save", function(){
+connectionRequestSchama.pre("save",  function(next){
     const connectionRequest= this;
     //check fromUserId equal toUserId
     if(connectionRequest.fromUserId.equals(connectionRequest.toUserId)){

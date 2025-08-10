@@ -42,8 +42,43 @@ if(!toUser){
   });
 
 }catch(err){
-  res.status(400).send("Error: "+ error.message);
+  res.status(400).send("Error: "+ err.message);
 }
+})
+
+
+routes.post("/request/review/:status/:requestId", userAuth, async(req,res)=>{
+  try{
+ const logInUser=req.user;
+ const {status,requestId} =req.params;
+ const allowedStatus = ["accepted","rejected"];
+ if(!allowedStatus.includes(status)){
+   res.status(400).json({
+    message: "status not allow"
+  })
+}
+  const connectionRequest = await ConnectionRequestModel.findOne({
+    _id:requestId,
+    toUserId: logInUser._id,
+    status: "intrested"
+  })
+  if(!connectionRequest){
+    return res.status(400).json({
+      message:"connection request not found"
+    })
+  }
+  connectionRequest.status=status;
+  const data = await connectionRequest.save();
+  return res.json({
+    message: "connection request "+status,
+    data
+  }) 
+  }catch(err){
+    res.status(400).json({message: err.message});
+  }
+ 
+
+
 })
 
 

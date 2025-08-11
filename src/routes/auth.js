@@ -36,7 +36,7 @@ router.post("/login", async(req,res)=>{
     if(isPasswordValid){
       const jwtToken=await user.getJWT();
       res.cookie("token",jwtToken,{expires:new Date(Date.now()+8*3600000)});
-      res.send("login successful");
+      res.send(user);
     }else{
       throw new Error("Password not valid")
     }

@@ -47,9 +47,9 @@ const userSchema = mongoose.Schema({
     //   }
     // }
   },
-  photos:{
+  photoUrl:{
     type: String,
-    default: "https://www.freepik.com/free-psd/yellow-gift-with-golden-ribbon-icon-sign-symbol-3d-background-illustration_71292021.htm#fromView=keyword&page=1&position=0&uuid=8a2735e3-4155-42f6-af74-d403c8ddf067&query=Png"
+    default: "https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
   },
   about: {
     type: String,
